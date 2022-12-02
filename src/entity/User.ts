@@ -21,7 +21,7 @@ export class User {
   password: string;
 }
 
-// Class de d'écriture TypeGraphQL,
+// Class d'écriture TypeGraphQL,
 // plus besoin de TypeORM et des champs nécéssaire à la lecture
 // Ajout de la validation des champs avec class-validator
 
