@@ -1,7 +1,8 @@
 import dataSource from "../utils";
-import { Arg, Mutation, Query, Resolver } from "type-graphql";
+import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
 import { User, UserInput } from "../entity/User";
 import * as argon2 from "argon2";
+import jwt from "jsonwebtoken";
 
 const repository = dataSource.getRepository(User);
 
@@ -15,11 +16,11 @@ export class UsersResolver {
     return await repository.save(data);
   }
 
-  @Mutation(() => User, { nullable: true })
+  @Mutation(() => String, { nullable: true })
   async signin(
     @Arg("email") email: string,
     @Arg("password") password: string
-  ): Promise<User | null> {
+  ): Promise<string | null> {
     try {
       // Aller chercher l'utilisateur par son email
       const user = await repository.findOne({
@@ -31,7 +32,8 @@ export class UsersResolver {
       }
       // On compare le mot de passe hasher avec le mot de passe transmis
       if (await argon2.verify(user.password, password)) {
-        return user;
+        const token = jwt.sign({ userId: user.id }, "mdpsecret!");
+        return token;
       } else {
         return null;
       }
@@ -47,7 +49,27 @@ export class UsersResolver {
 
   @Query(() => [User])
   async readUser(): Promise<User[]> {
-    const wilders = await repository.find({});
-    return wilders;
+    const users = await repository.find({});
+    return users;
+  }
+
+  @Query(() => User, { nullable: true })
+  // La query me prend en parametre le context: "context" qui retrounera un token null ou string
+  async me(@Ctx() context: { token: null | string }): Promise<User | null> {
+    const token = context.token;
+    if (token === null) {
+      return null;
+    }
+    try {
+      const decodedToken: { userId: number } = jwt.verify(
+        token,
+        "mdpsecret!"
+      ) as any;
+      const userId = decodedToken.userId;
+      const user = await repository.findOne({ where: { id: userId } });
+      return user;
+    } catch {
+      return null;
+    }
   }
 }

@@ -15,6 +15,21 @@ async function bootstrap(): Promise<void> {
   // Create the GraphQL server
   const server = new ApolloServer({
     schema,
+    // Context permettant d'accèder au token depuis n'importequel resolver
+    context: ({ req }) => {
+      // Récypère le header d'authorization
+      const authorization: string | undefined = req?.headers?.authorization;
+
+      // Si le header d'authorization n'est pas null on retourne le token
+      if (authorization != null) {
+        // Bearer ...jwt
+        const token = authorization.split(" ").pop();
+        console.log(token);
+        return { token };
+      }
+      // Sinon on retourne un token null
+      return { token: null };
+    },
   });
 
   //   Démarrage du server
