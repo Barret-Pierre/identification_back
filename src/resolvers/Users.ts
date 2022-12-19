@@ -1,8 +1,9 @@
 import dataSource from "../utils";
-import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
+import { Arg, Authorized, Ctx, Mutation, Query, Resolver } from "type-graphql";
 import { User, UserInput } from "../entity/User";
 import * as argon2 from "argon2";
 import jwt from "jsonwebtoken";
+import { IContext } from "../interfaces";
 
 const repository = dataSource.getRepository(User);
 
@@ -46,30 +47,18 @@ export class UsersResolver {
   // async createUser(@Arg("data") data: WilderInput): Promise<Wilder> {
   //   return await repository.save(data);
   // }
-
-  @Query(() => [User])
-  async readUser(): Promise<User[]> {
-    const users = await repository.find({});
-    return users;
+  @Authorized()
+  @Query(() => User, { nullable: true })
+  // La query me prend en parametre le context: "context" qui retrounera null ou un user
+  async me(@Ctx() context: IContext): Promise<User | null> {
+    return context.user;
   }
 
-  @Query(() => User, { nullable: true })
-  // La query me prend en parametre le context: "context" qui retrounera un token null ou string
-  async me(@Ctx() context: { token: null | string }): Promise<User | null> {
-    const token = context.token;
-    if (token === null) {
-      return null;
-    }
-    try {
-      const decodedToken: { userId: number } = jwt.verify(
-        token,
-        "mdpsecret!"
-      ) as any;
-      const userId = decodedToken.userId;
-      const user = await repository.findOne({ where: { id: userId } });
-      return user;
-    } catch {
-      return null;
-    }
+  // only user connected
+  @Authorized()
+  @Query(() => [User])
+  async readUsers(): Promise<User[]> {
+    const users = await repository.find({});
+    return users;
   }
 }

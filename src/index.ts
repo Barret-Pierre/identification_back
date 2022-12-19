@@ -3,6 +3,7 @@ import dataSource from "./utils";
 import { ApolloServer } from "apollo-server";
 import { UsersResolver } from "./resolvers/Users";
 import { buildSchema } from "type-graphql";
+import { customAuthChecker } from "./auth";
 
 const PORT = 4000;
 
@@ -10,6 +11,7 @@ async function bootstrap(): Promise<void> {
   // ... Building schema here
   const schema = await buildSchema({
     resolvers: [UsersResolver],
+    authChecker: customAuthChecker,
   });
 
   // Create the GraphQL server
@@ -24,7 +26,6 @@ async function bootstrap(): Promise<void> {
       if (authorization != null) {
         // Bearer ...jwt
         const token = authorization.split(" ").pop();
-        console.log(token);
         return { token };
       }
       // Sinon on retourne un token null
