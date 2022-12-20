@@ -1,5 +1,6 @@
 import { DataSource } from "typeorm";
 import { User } from "./entity/User";
+import { Comment } from "./entity/Comment";
 
 // Identifiant de connexion à la base de donnée et choix des tables à récupérer
 const dataSource = new DataSource({
@@ -14,7 +15,7 @@ const dataSource = new DataSource({
   synchronize: true,
   // option d'affichage des erreur et requête SQL dans la console
   logging: ["query", "error"],
-  entities: [User],
+  entities: [User, Comment],
 });
 
 export default dataSource;

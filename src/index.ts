@@ -4,13 +4,14 @@ import { ApolloServer } from "apollo-server";
 import { UsersResolver } from "./resolvers/Users";
 import { buildSchema } from "type-graphql";
 import { customAuthChecker } from "./auth";
+import { CommentsResolver } from "./resolvers/Comments";
 
 const PORT = 4000;
 
 async function bootstrap(): Promise<void> {
   // ... Building schema here
   const schema = await buildSchema({
-    resolvers: [UsersResolver],
+    resolvers: [UsersResolver, CommentsResolver],
     authChecker: customAuthChecker,
   });
 
@@ -33,15 +34,13 @@ async function bootstrap(): Promise<void> {
     },
   });
 
-  //   Démarrage du server
-  const { url } = await server.listen(PORT);
-  console.log(`Server is running, GraphQL Playground available at ${url}`);
-
   try {
     // Connexion à la base de donnée (Attente de la connexion avant de passer à la suite)
-    await dataSource.initialize().then(() => {
-      console.log("DB connected");
-    });
+    await dataSource.initialize();
+    console.log("DB connected");
+    // Démarrage du server
+    const { url } = await server.listen(PORT);
+    console.log(`Server is running, GraphQL Playground available at ${url}`);
   } catch (error) {
     console.log("DB connexion failed");
     console.log(error);
