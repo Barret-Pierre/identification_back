@@ -5,13 +5,22 @@ import { UsersResolver } from "./resolvers/Users";
 import { buildSchema } from "type-graphql";
 import { customAuthChecker } from "./auth";
 import { CommentsResolver } from "./resolvers/Comments";
+import { PostsResolver } from "./resolvers/Posts";
+import { ImagesResolver } from "./resolvers/Images";
+import { TagsResolver } from "./resolvers/Tags";
 
 const PORT = 4000;
 
 async function bootstrap(): Promise<void> {
   // ... Building schema here
   const schema = await buildSchema({
-    resolvers: [UsersResolver, CommentsResolver],
+    resolvers: [
+      UsersResolver,
+      CommentsResolver,
+      PostsResolver,
+      ImagesResolver,
+      TagsResolver,
+    ],
     authChecker: customAuthChecker,
   });
 

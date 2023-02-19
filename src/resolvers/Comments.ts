@@ -13,8 +13,9 @@ export class CommentsResolver {
     @Ctx() context: IContext,
     @Arg("data", () => CommentInput) data: CommentInput
   ): Promise<Comment> {
-    const user = context.user;
-    return await repository.save({ ...data, createdBy: user });
+    data.createdAt = new Date();
+    data.createdBy = context.user;
+    return await repository.save(data);
   }
 
   // only user connected
